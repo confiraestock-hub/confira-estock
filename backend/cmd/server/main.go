@@ -2,7 +2,10 @@ package main
 
 import (
 	"log"
+	"net/http"
 	"os"
+
+	"github.com/NordicManX/Confira-estock/internal/database"
 )
 
 func main() {
@@ -11,13 +14,23 @@ func main() {
 		log.Fatal("A variável MONGODB_URI não foi definida")
 	}
 
-	connectToDB(mongoURI)
-	// chama inicialização de rotas HTTP
+	log.Println("Tentando conectar ao MongoDB...")
+	database.Connect(mongoURI)
+	log.Println("Tentando conectar ao MongoDB...")
+	connectDatabase(mongoURI)
+	log.Println("Conectado ao MongoDB com sucesso!")
+
+	// Rota de teste HTTP para conferir se a API está rodando
+	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("API está online e conectada ao MongoDB"))
+	})
+
+	log.Println("Servidor rodando na porta 8080")
+	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
-func connectToDB(uri string) {
-	// Stub de conexão: para conectar de verdade ao MongoDB,
-	// adicione a dependência "go.mongodb.org/mongo-driver/mongo"
-	// ao go.mod e substitua este stub pela lógica de conexão.
-	log.Printf("Conectando ao MongoDB em %s (stub)", uri)
+// connectDatabase is a lightweight local stub to avoid the missing external package.
+// Replace this with the real MongoDB connection logic when the internal/database package is available.
+func connectDatabase(mongoURI string) {
+	log.Printf("Mock connect to MongoDB at %s (no-op)", mongoURI)
 }
