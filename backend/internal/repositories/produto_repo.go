@@ -1,52 +1,66 @@
 package repositories
 
 import (
-	"errors"
+	"context"
+	"time"
 
-	"github.com/NordicManX/Confira-estock/internal/models"
+	"github.com/NordicManX/Confira-estock/backend/internal/database"
+	"github.com/NordicManX/Confira-estock/backend/internal/models"
+
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
-var produtos = []models.Produto{}
+var produtoCollection *mongo.Collection = database.GetCollection("confiraestock", "produtos")
 
-// aqui cria o produto
-func CriarProduto(p models.Produto) error {
-	produtos = append(produtos, p)
-	return nil
+func CriarProduto(prod models.Produto) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	_, err := produtoCollection.InsertOne(ctx, prod)
+	return err
 }
 
-// aqui lista os produtos
 func ListarProdutos() ([]models.Produto, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	cursor, err := produtoCollection.Find(ctx, bson.M{})
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var produtos []models.Produto
+	if err := cursor.All(ctx, &produtos); err != nil {
+		return nil, err
+	}
 	return produtos, nil
 }
 
-// aqui busca o produto pelo id
-func BuscarProdutoPorID(id string) (models.Produto, error) {
-	for _, p := range produtos {
-		if p.ID == id {
-			return p, nil
-		}
-	}
-	return models.Produto{}, errors.New("produto não encontrado")
+func BuscarProdutoPorID(id string) (*models.Produto, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	var prod models.Produto
+	err := produtoCollection.FindOne(ctx, bson.M{"id": id}).Decode(&prod)
+	return &prod, err
 }
 
-// aqui atualiza o produto pelo id
-func AtualizarProduto(id string, p models.Produto) error {
-	for i, prod := range produtos {
-		if prod.ID == id {
-			produtos[i] = p
-			return nil
-		}
-	}
-	return errors.New("produto não encontrado")
+func AtualizarProduto(id string, novo models.Produto) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	filtro := bson.M{"id": id}
+	update := bson.M{"$set": novo}
+	_, err := produtoCollection.UpdateOne(ctx, filtro, update)
+	return err
 }
 
-// aqui deleta o produto pelo id
 func DeletarProduto(id string) error {
-	for i, p := range produtos {
-		if p.ID == id {
-			produtos = append(produtos[:i], produtos[i+1:]...)
-			return nil
-		}
-	}
-	return errors.New("produto não encontrado")
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	_, err := produtoCollection.DeleteOne(ctx, bson.M{"id": id})
+	return err
 }

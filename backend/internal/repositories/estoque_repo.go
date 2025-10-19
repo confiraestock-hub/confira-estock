@@ -1,41 +1,100 @@
 package repositories
 
 import (
+	"context"
 	"errors"
+	"time"
 
+	"github.com/NordicManX/Confira-estock/internal/database"
 	"github.com/NordicManX/Confira-estock/internal/models"
+
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
-var estoques = []models.Estoque{}
+var estoqueCollection *mongo.Collection = database.GetCollection("confiraestock", "estoques")
 
-// aqui cria o estoque
+// aqui estão as funções de CRUD para o estoque
 func CriarEstoque(e models.Estoque) error {
-	estoques = append(estoques, e)
-	return nil
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	_, err := estoqueCollection.InsertOne(ctx, e)
+	return err
 }
 
-// aqui lista os estoques
+// aqui retorna todos os estoques do banco de dados
 func ListarEstoques() ([]models.Estoque, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	cursor, err := estoqueCollection.Find(ctx, bson.M{})
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var estoques []models.Estoque
+	if err := cursor.All(ctx, &estoques); err != nil {
+		return nil, err
+	}
+
 	return estoques, nil
 }
 
-// aqui busca o estoque pelo id
+// aqui busc Por ID e retorna um estoque com base no ID
 func BuscarEstoquePorID(id string) (*models.Estoque, error) {
-	for _, e := range estoques {
-		if e.ID == id {
-			return &e, nil
-		}
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	var e models.Estoque
+	err := estoqueCollection.FindOne(ctx, bson.M{"id": id}).Decode(&e)
+	if err == mongo.ErrNoDocuments {
+		return nil, errors.New("estoque não encontrado")
 	}
-	return nil, errors.New("estoque não encontrado")
+	return &e, err
 }
 
-// aqui atualiza o estoque pelo id
+// aqui atualiza estoque e modifica um estoque existente com base no ID
 func AtualizarEstoque(id string, novo models.Estoque) error {
-	for i, e := range estoques {
-		if e.ID == id {
-			estoques[i] = novo
-			return nil
-		}
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	filtro := bson.M{"id": id}
+	update := bson.M{
+		"$set": bson.M{
+			"nome":          novo.Nome,
+			"tipo":          novo.Tipo,
+			"localizacao":   novo.Localizacao,
+			"produtos":      novo.Produtos,
+			"responsavelid": novo.ResponsavelID,
+			"dataultimamov": novo.DataUltimaMov,
+		},
 	}
-	return errors.New("estoque não encontrado")
+
+	result, err := estoqueCollection.UpdateOne(ctx, filtro, update)
+	if err != nil {
+		return err
+	}
+	if result.MatchedCount == 0 {
+		return errors.New("nenhum estoque encontrado para atualização")
+	}
+
+	return nil
+}
+
+// aqui deleta o estoque do banco de dados com base no ID
+func DeletarEstoque(id string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	result, err := estoqueCollection.DeleteOne(ctx, bson.M{"id": id})
+	if err != nil {
+		return err
+	}
+	if result.DeletedCount == 0 {
+		return errors.New("nenhum estoque encontrado para exclusão")
+	}
+
+	return nil
 }
