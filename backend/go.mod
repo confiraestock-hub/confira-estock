@@ -1,4 +1,4 @@
-module github.com/NordicManX/Confira-estock
+module github.com/confiraestock-hub/Confira-estock
 
 go 1.25.0
 

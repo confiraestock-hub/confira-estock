@@ -5,8 +5,8 @@ import (
 	"errors"
 	"time"
 
-	"github.com/NordicManX/Confira-estock/internal/database"
-	"github.com/NordicManX/Confira-estock/internal/models"
+	"github.com/confiraestock-hub/Confira-estock/internal/database"
+	"github.com/confiraestock-hub/Confira-estock/internal/models"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
