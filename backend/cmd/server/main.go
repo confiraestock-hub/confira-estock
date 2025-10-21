@@ -2,8 +2,23 @@ package main
 
 import (
 	"log"
+	"net/http"
 	"os"
+
+	"github.com/NordicManX/Confira-estock/backend/internal/database"
+	"github.com/gorilla/mux"
+	// importe seus handlers aqui, por exemplo:
+	// "github.com/NordicManX/Confira-estock/backend/internal/handlers"
 )
+
+func healthHandler(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("API está online e conectada ao MongoDB"))
+}
+
+func notFoundHandler(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotFound)
+	w.Write([]byte("404 - Rota não encontrada"))
+}
 
 func main() {
 	mongoURI := os.Getenv("MONGODB_URI")
@@ -11,13 +26,20 @@ func main() {
 		log.Fatal("A variável MONGODB_URI não foi definida")
 	}
 
-	connectToDB(mongoURI)
-	// chama inicialização de rotas HTTP
-}
+	log.Println("Conectando ao MongoDB em", mongoURI)
+	database.Connect(mongoURI)
+	log.Println("Conexão ao MongoDB feita com sucesso!")
 
-func connectToDB(uri string) {
-	// Stub de conexão: para conectar de verdade ao MongoDB,
-	// adicione a dependência "go.mongodb.org/mongo-driver/mongo"
-	// ao go.mod e substitua este stub pela lógica de conexão.
-	log.Printf("Conectando ao MongoDB em %s (stub)", uri)
+	r := mux.NewRouter()
+	r.HandleFunc("/health", healthHandler).Methods("GET")
+
+	// Exemplos de rotas futuras:
+	// r.HandleFunc("/estoques", handlers.ListarEstoques).Methods("GET")
+	// r.HandleFunc("/produtos", handlers.ListarProdutos).Methods("GET")
+	// r.HandleFunc("/vendas", handlers.ListarVendas).Methods("GET")
+
+	r.NotFoundHandler = http.HandlerFunc(notFoundHandler)
+
+	log.Println("Servidor rodando na porta 8080")
+	log.Fatal(http.ListenAndServe(":8080", r))
 }
