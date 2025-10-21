@@ -26,6 +26,9 @@ func main() {
 		log.Fatal("A variável MONGODB_URI não foi definida")
 	}
 
+	// Imprime a URI com aspas para revelar espaços ou caracteres invisíveis
+	log.Printf("URI recebida: %q\n", mongoURI)
+
 	log.Println("Conectando ao MongoDB em", mongoURI)
 	database.Connect(mongoURI)
 	log.Println("Conexão ao MongoDB feita com sucesso!")
