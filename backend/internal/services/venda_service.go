@@ -3,9 +3,8 @@ package services
 import (
 	"errors"
 
-	"github.com/NordicManX/Confira-estock/internal/repositories"
-	"github.com/NordicManX/Confira-estock/models"
-	"github.com/NordicManX/Confira-estock/repositories"
+	"github.com/confiraestock-hub/confira-estock/internal/models"
+	"github.com/confiraestock-hub/confira-estock/internal/repositories"
 )
 
 func RegistrarVenda(v models.Venda) error {

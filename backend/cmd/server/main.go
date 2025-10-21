@@ -4,11 +4,10 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
-	"github.com/NordicManX/Confira-estock/backend/internal/database"
+	"github.com/confiraestock-hub/confira-estock/internal/database"
 	"github.com/gorilla/mux"
-	// importe seus handlers aqui, por exemplo:
-	// "github.com/NordicManX/Confira-estock/backend/internal/handlers"
 )
 
 func healthHandler(w http.ResponseWriter, r *http.Request) {
@@ -21,10 +20,14 @@ func notFoundHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	mongoURI := os.Getenv("MONGODB_URI")
+	// Lê e remove espaços e quebras de linha (\n, \r) do valor da variável
+	mongoURI := strings.TrimSpace(os.Getenv("MONGODB_URI"))
 	if mongoURI == "" {
 		log.Fatal("A variável MONGODB_URI não foi definida")
 	}
+
+	// Loga com aspas para identificar espaços invisíveis
+	log.Printf("URI recebida: %q\n", mongoURI)
 
 	log.Println("Conectando ao MongoDB em", mongoURI)
 	database.Connect(mongoURI)
@@ -32,11 +35,6 @@ func main() {
 
 	r := mux.NewRouter()
 	r.HandleFunc("/health", healthHandler).Methods("GET")
-
-	// Exemplos de rotas futuras:
-	// r.HandleFunc("/estoques", handlers.ListarEstoques).Methods("GET")
-	// r.HandleFunc("/produtos", handlers.ListarProdutos).Methods("GET")
-	// r.HandleFunc("/vendas", handlers.ListarVendas).Methods("GET")
 
 	r.NotFoundHandler = http.HandlerFunc(notFoundHandler)
 
