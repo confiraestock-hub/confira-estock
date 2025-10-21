@@ -3,8 +3,8 @@ package services
 import (
 	"time"
 
-	"github.com/NordicManX/Confira-estock/internal/repositories"
-	"github.com/cconfiraestock-hub/Confira-estock/internal/models"
+	"github.com/confiraestock-hub/confira-estock/internal/models"
+	"github.com/confiraestock-hub/confira-estock/internal/repositories"
 )
 
 type Relatorio struct {

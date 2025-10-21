@@ -3,8 +3,8 @@ package services
 import (
 	"errors"
 
-	"github.com/confiraestock-hub/Confira-estock/internal/models"
-	"github.com/confiraestock-hub/Confira-estock/internal/repositories"
+	"github.com/confiraestock-hub/confira-estock/internal/models"
+	"github.com/confiraestock-hub/confira-estock/internal/repositories"
 )
 
 func TransferirProduto(origemID, destinoID, produtoID string, quantidade int) error {

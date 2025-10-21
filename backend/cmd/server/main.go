@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/confiraestock-hub/Confira-estock/backend/internal/database"
+	"github.com/confiraestock-hub/confira-estock/internal/database"
 	"github.com/gorilla/mux"
 	// importe seus handlers aqui, por exemplo:
 	// "github.com/NordicManX/Confira-estock/backend/internal/handlers"

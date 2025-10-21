@@ -4,9 +4,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/confiraestock-hub/Confira-estock/backend/internal/database"
-	"github.com/confiraestock-hub/Confira-estock/backend/internal/models"
-
+	"github.com/confiraestock-hub/confira-estock/internal/database"
+	"github.com/confiraestock-hub/confira-estock/internal/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
