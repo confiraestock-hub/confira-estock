@@ -22,13 +22,12 @@ func notFoundHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	// Lê e remove espaços e quebras de linha (\n, \r) da variável de ambiente
+	// Lê e limpa a variável de ambiente
 	mongoURI := strings.TrimSpace(os.Getenv("MONGODB_URI"))
 	if mongoURI == "" {
 		log.Fatal("A variável MONGODB_URI não foi definida")
 	}
 
-	// Loga a URI recebida (com aspas para identificar espaços invisíveis)
 	log.Printf("URI recebida: %q\n", mongoURI)
 
 	// Conecta ao MongoDB
@@ -38,7 +37,7 @@ func main() {
 		log.Fatalf("Falha ao conectar ao MongoDB: %v", err)
 	}
 
-	// Ping para verificar conexão
+	// Confirma conexão com Ping
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	if err := client.Ping(ctx, nil); err != nil {

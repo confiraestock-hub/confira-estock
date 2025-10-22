@@ -11,7 +11,7 @@ import (
 
 var Client *mongo.Client
 
-// Connect conecta ao MongoDB e retorna o client e o erro (se houver)
+// Connect conecta ao MongoDB Atlas e retorna o client e erro (se houver)
 func Connect(uri string) (*mongo.Client, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -26,7 +26,6 @@ func Connect(uri string) (*mongo.Client, error) {
 		return nil, fmt.Errorf("não foi possível pingar o MongoDB: %w", err)
 	}
 
-	// Armazena o client globalmente se necessário
 	Client = client
 	return client, nil
 }
