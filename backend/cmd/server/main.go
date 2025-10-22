@@ -44,40 +44,51 @@ func main() {
 
 	log.Println("Conexão ao MongoDB feita com sucesso!")
 
+	// Inicializando as coleções
+	handlers.CategoriaCollection = client.Database("confiraestock").Collection("categorias")
+	handlers.ProdutoCollection = client.Database("confiraestock").Collection("produtos")
+	handlers.EstoqueCollection = client.Database("confiraestock").Collection("estoques")
+	handlers.MovimentacaoCollection = client.Database("confiraestock").Collection("movimentacoes")
+	handlers.UsuarioCollection = client.Database("confiraestock").Collection("usuarios")
+	handlers.VendaCollection = client.Database("confiraestock").Collection("vendas")
+
 	r := mux.NewRouter()
-	// Inicialize a coleção de categorias
+
+	r.NotFoundHandler = http.HandlerFunc(notFoundHandler)
+
 	r.HandleFunc("/health", healthHandler).Methods("GET")
+
+	// Rotas Categorias
 	r.HandleFunc("/categorias", handlers.CriarCategoria).Methods("POST")
 	r.HandleFunc("/categorias", handlers.ListarCategorias).Methods("GET")
 	r.HandleFunc("/categorias/{id}", handlers.AtualizarCategoria).Methods("PUT")
 	r.HandleFunc("/categorias/{id}", handlers.DeletarCategoria).Methods("DELETE")
 
-	// Inicialize a coleção de produtos
+	// Rotas Produtos
 	r.HandleFunc("/produtos", handlers.CriarProduto).Methods("POST")
 	r.HandleFunc("/produtos", handlers.ListarProdutos).Methods("GET")
 	r.HandleFunc("/produtos/{id}", handlers.AtualizarProduto).Methods("PUT")
 	r.HandleFunc("/produtos/{id}", handlers.DeletarProduto).Methods("DELETE")
-	r.NotFoundHandler = http.HandlerFunc(notFoundHandler)
 
-	// Inicialize a coleção de estoques
+	// Rotas Estoques
 	r.HandleFunc("/estoques", handlers.CriarEstoque).Methods("POST")
 	r.HandleFunc("/estoques", handlers.ListarEstoques).Methods("GET")
 	r.HandleFunc("/estoques/{id}", handlers.AtualizarEstoque).Methods("PUT")
 	r.HandleFunc("/estoques/{id}", handlers.DeletarEstoque).Methods("DELETE")
 
-	// Inicialize a coleção de movimentações
+	// Rotas Movimentações
 	r.HandleFunc("/movimentacoes", handlers.CriarMovimentacao).Methods("POST")
 	r.HandleFunc("/movimentacoes", handlers.ListarMovimentacoes).Methods("GET")
 	r.HandleFunc("/movimentacoes/{id}", handlers.AtualizarMovimentacao).Methods("PUT")
 	r.HandleFunc("/movimentacoes/{id}", handlers.DeletarMovimentacao).Methods("DELETE")
 
-	// Inicialize a coleção de usuários
+	// Rotas Usuários
 	r.HandleFunc("/usuarios", handlers.CriarUsuario).Methods("POST")
 	r.HandleFunc("/usuarios", handlers.ListarUsuarios).Methods("GET")
 	r.HandleFunc("/usuarios/{id}", handlers.AtualizarUsuario).Methods("PUT")
 	r.HandleFunc("/usuarios/{id}", handlers.DeletarUsuario).Methods("DELETE")
 
-	// Inicialize a coleção de vendas
+	// Rotas Vendas
 	r.HandleFunc("/vendas", handlers.CriarVenda).Methods("POST")
 	r.HandleFunc("/vendas", handlers.ListarVendas).Methods("GET")
 	r.HandleFunc("/vendas/{id}", handlers.AtualizarVenda).Methods("PUT")
