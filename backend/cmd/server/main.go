@@ -94,6 +94,9 @@ func main() {
 	r.HandleFunc("/vendas/{id}", handlers.AtualizarVenda).Methods("PUT")
 	r.HandleFunc("/vendas/{id}", handlers.DeletarVenda).Methods("DELETE")
 
+	// Rotas Relatórios
+	r.HandleFunc("/relatorios/vendas-diarias", handlers.RelatorioVendasDiarias).Methods("GET")
+
 	log.Println("Servidor rodando na porta 8080")
 	log.Fatal(http.ListenAndServe(":8080", r))
 }
