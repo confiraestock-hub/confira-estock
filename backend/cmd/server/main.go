@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/confiraestock-hub/confira-estock/internal/database"
+	"github.com/confiraestock-hub/confira-estock/internal/handlers"
 	"github.com/gorilla/mux"
 )
 
@@ -44,8 +45,43 @@ func main() {
 	log.Println("Conexão ao MongoDB feita com sucesso!")
 
 	r := mux.NewRouter()
+	// Inicialize a coleção de categorias
 	r.HandleFunc("/health", healthHandler).Methods("GET")
+	r.HandleFunc("/categorias", handlers.CriarCategoria).Methods("POST")
+	r.HandleFunc("/categorias", handlers.ListarCategorias).Methods("GET")
+	r.HandleFunc("/categorias/{id}", handlers.AtualizarCategoria).Methods("PUT")
+	r.HandleFunc("/categorias/{id}", handlers.DeletarCategoria).Methods("DELETE")
+
+	// Inicialize a coleção de produtos
+	r.HandleFunc("/produtos", handlers.CriarProduto).Methods("POST")
+	r.HandleFunc("/produtos", handlers.ListarProdutos).Methods("GET")
+	r.HandleFunc("/produtos/{id}", handlers.AtualizarProduto).Methods("PUT")
+	r.HandleFunc("/produtos/{id}", handlers.DeletarProduto).Methods("DELETE")
 	r.NotFoundHandler = http.HandlerFunc(notFoundHandler)
+
+	// Inicialize a coleção de estoques
+	r.HandleFunc("/estoques", handlers.CriarEstoque).Methods("POST")
+	r.HandleFunc("/estoques", handlers.ListarEstoques).Methods("GET")
+	r.HandleFunc("/estoques/{id}", handlers.AtualizarEstoque).Methods("PUT")
+	r.HandleFunc("/estoques/{id}", handlers.DeletarEstoque).Methods("DELETE")
+
+	// Inicialize a coleção de movimentações
+	r.HandleFunc("/movimentacoes", handlers.CriarMovimentacao).Methods("POST")
+	r.HandleFunc("/movimentacoes", handlers.ListarMovimentacoes).Methods("GET")
+	r.HandleFunc("/movimentacoes/{id}", handlers.AtualizarMovimentacao).Methods("PUT")
+	r.HandleFunc("/movimentacoes/{id}", handlers.DeletarMovimentacao).Methods("DELETE")
+
+	// Inicialize a coleção de usuários
+	r.HandleFunc("/usuarios", handlers.CriarUsuario).Methods("POST")
+	r.HandleFunc("/usuarios", handlers.ListarUsuarios).Methods("GET")
+	r.HandleFunc("/usuarios/{id}", handlers.AtualizarUsuario).Methods("PUT")
+	r.HandleFunc("/usuarios/{id}", handlers.DeletarUsuario).Methods("DELETE")
+
+	// Inicialize a coleção de vendas
+	r.HandleFunc("/vendas", handlers.CriarVenda).Methods("POST")
+	r.HandleFunc("/vendas", handlers.ListarVendas).Methods("GET")
+	r.HandleFunc("/vendas/{id}", handlers.AtualizarVenda).Methods("PUT")
+	r.HandleFunc("/vendas/{id}", handlers.DeletarVenda).Methods("DELETE")
 
 	log.Println("Servidor rodando na porta 8080")
 	log.Fatal(http.ListenAndServe(":8080", r))
