@@ -1,10 +1,12 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/confiraestock-hub/confira-estock/internal/database"
 	"github.com/gorilla/mux"
@@ -20,22 +22,34 @@ func notFoundHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	// Lê e remove espaços e quebras de linha (\n, \r) do valor da variável
+	// Lê e remove espaços e quebras de linha (\n, \r) da variável de ambiente
 	mongoURI := strings.TrimSpace(os.Getenv("MONGODB_URI"))
 	if mongoURI == "" {
 		log.Fatal("A variável MONGODB_URI não foi definida")
 	}
 
-	// Loga com aspas para identificar espaços invisíveis
+	// Loga a URI recebida (com aspas para identificar espaços invisíveis)
 	log.Printf("URI recebida: %q\n", mongoURI)
 
-	log.Println("Conectando ao MongoDB em", mongoURI)
-	database.Connect(mongoURI)
+	// Conecta ao MongoDB
+	log.Println("Conectando ao MongoDB...")
+	client, err := database.Connect(mongoURI)
+	if err != nil {
+		log.Fatalf("Falha ao conectar ao MongoDB: %v", err)
+	}
+
+	// Ping para verificar conexão
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	if err := client.Ping(ctx, nil); err != nil {
+		log.Fatalf("Não foi possível pingar o MongoDB: %v", err)
+	}
+
 	log.Println("Conexão ao MongoDB feita com sucesso!")
 
+	// Configura router
 	r := mux.NewRouter()
 	r.HandleFunc("/health", healthHandler).Methods("GET")
-
 	r.NotFoundHandler = http.HandlerFunc(notFoundHandler)
 
 	log.Println("Servidor rodando na porta 8080")
