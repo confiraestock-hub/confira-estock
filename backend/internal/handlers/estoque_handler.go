@@ -32,7 +32,7 @@ func CriarEstoque(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	est.ID = res.InsertedID.(primitive.ObjectID).Hex()
+	est.ID = res.InsertedID.(primitive.ObjectID)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(est)
 }
@@ -63,27 +63,29 @@ func ListarEstoques(w http.ResponseWriter, r *http.Request) {
 func AtualizarEstoque(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	idParam := params["id"]
-
-	// Como seu modelo usa string, para conversão segura, deixe como string simples:
-	// ex: compara string simples, sem ObjectID, adapte conforme necessidade
-
+	objId, err := primitive.ObjectIDFromHex(idParam)
+	if err != nil {
+		http.Error(w, "ID inválido", http.StatusBadRequest)
+		return
+	}
 	var est models.Estoque
 	if err := json.NewDecoder(r.Body).Decode(&est); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-
-	filter := bson.M{"_id": idParam}
+	filter := bson.M{"_id": objId}
 	update := bson.M{"$set": est}
-	_, err := EstoqueCollection.UpdateOne(ctx, filter, update)
+	result, err := EstoqueCollection.UpdateOne(ctx, filter, update)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-
+	if result.ModifiedCount == 0 {
+		http.Error(w, "Estoque não encontrado ou não alterado", http.StatusNotFound)
+		return
+	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(est)
 }
