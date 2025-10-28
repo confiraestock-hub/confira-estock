@@ -68,13 +68,16 @@ func AtualizarEstoque(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "ID inválido", http.StatusBadRequest)
 		return
 	}
+
 	var est models.Estoque
 	if err := json.NewDecoder(r.Body).Decode(&est); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
+
 	filter := bson.M{"_id": objId}
 	update := bson.M{"$set": est}
 	result, err := EstoqueCollection.UpdateOne(ctx, filter, update)
@@ -82,12 +85,22 @@ func AtualizarEstoque(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
 	if result.ModifiedCount == 0 {
 		http.Error(w, "Estoque não encontrado ou não alterado", http.StatusNotFound)
 		return
 	}
+
+	// Busque o estoque do banco já com o ID correto
+	var estoqueAtualizado models.Estoque
+	err = EstoqueCollection.FindOne(ctx, filter).Decode(&estoqueAtualizado)
+	if err != nil {
+		http.Error(w, "Erro ao buscar estoque atualizado", http.StatusInternalServerError)
+		return
+	}
+
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(est)
+	json.NewEncoder(w).Encode(estoqueAtualizado)
 }
 
 // Deletar Estoque pelo ID
