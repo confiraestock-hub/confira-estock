@@ -108,12 +108,23 @@ func DeletarEstoque(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	idParam := params["id"]
 
+	objId, err := primitive.ObjectIDFromHex(idParam)
+	if err != nil {
+		http.Error(w, "ID inválido", http.StatusBadRequest)
+		return
+	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	_, err := EstoqueCollection.DeleteOne(ctx, bson.M{"_id": idParam})
+	result, err := EstoqueCollection.DeleteOne(ctx, bson.M{"_id": objId})
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if result.DeletedCount == 0 {
+		http.Error(w, "Estoque não encontrado", http.StatusNotFound)
 		return
 	}
 
