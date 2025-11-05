@@ -79,6 +79,9 @@ func AtualizarMovimentacao(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Atualize a data/hora para o momento atual
+	mov.DataHora = time.Now() // Use o campo correto conforme seu struct
+
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
