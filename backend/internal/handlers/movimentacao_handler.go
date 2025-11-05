@@ -67,6 +67,12 @@ func AtualizarMovimentacao(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	idParam := params["id"]
 
+	objId, err := primitive.ObjectIDFromHex(idParam)
+	if err != nil {
+		http.Error(w, "ID inválido", http.StatusBadRequest)
+		return
+	}
+
 	var mov models.Movimentacao
 	if err := json.NewDecoder(r.Body).Decode(&mov); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -76,11 +82,15 @@ func AtualizarMovimentacao(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	filter := bson.M{"_id": idParam}
+	filter := bson.M{"_id": objId}
 	update := bson.M{"$set": mov}
-	_, err := MovimentacaoCollection.UpdateOne(ctx, filter, update)
+	result, err := MovimentacaoCollection.UpdateOne(ctx, filter, update)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if result.ModifiedCount == 0 {
+		http.Error(w, "Movimentação não encontrada ou sem alterações", http.StatusNotFound)
 		return
 	}
 
