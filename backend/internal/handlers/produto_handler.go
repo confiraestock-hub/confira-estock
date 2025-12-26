@@ -13,61 +13,65 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-var VendaCollection *mongo.Collection
+var ProdutoCollection *mongo.Collection // Inicialize a coleção no main
 
-func CriarVenda(w http.ResponseWriter, r *http.Request) {
-	var vend models.Venda
-	if err := json.NewDecoder(r.Body).Decode(&vend); err != nil {
+// Criar Produto
+func CriarProduto(w http.ResponseWriter, r *http.Request) {
+	var prod models.Produto
+	if err := json.NewDecoder(r.Body).Decode(&prod); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	vend.ID = primitive.NewObjectID().Hex()
-	vend.DataHora = time.Now()
-
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	res, err := VendaCollection.InsertOne(ctx, vend)
+	res, err := ProdutoCollection.InsertOne(ctx, prod)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	if insertedID, ok := res.InsertedID.(primitive.ObjectID); ok {
-		vend.ID = insertedID.Hex()
-	}
 
+	prod.ID = res.InsertedID.(primitive.ObjectID)
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(vend)
+	json.NewEncoder(w).Encode(prod)
 }
 
-func ListarVendas(w http.ResponseWriter, r *http.Request) {
+// Listar Todos Produtos
+func ListarProdutos(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	cursor, err := VendaCollection.Find(ctx, bson.M{})
+	cursor, err := ProdutoCollection.Find(ctx, bson.M{})
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	defer cursor.Close(ctx)
 
-	var vendas []models.Venda
-	if err = cursor.All(ctx, &vendas); err != nil {
+	var produtos []models.Produto
+	if err = cursor.All(ctx, &produtos); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(vendas)
+	json.NewEncoder(w).Encode(produtos)
 }
 
-func AtualizarVenda(w http.ResponseWriter, r *http.Request) {
+// Atualizar Produto pelo ID
+func AtualizarProduto(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	idParam := params["id"]
 
-	var vend models.Venda
-	if err := json.NewDecoder(r.Body).Decode(&vend); err != nil {
+	id, err := primitive.ObjectIDFromHex(idParam)
+	if err != nil {
+		http.Error(w, "ID inválido", http.StatusBadRequest)
+		return
+	}
+
+	var prod models.Produto
+	if err := json.NewDecoder(r.Body).Decode(&prod); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -75,26 +79,33 @@ func AtualizarVenda(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	filter := bson.M{"_id": idParam}
-	update := bson.M{"$set": vend}
-	_, err := VendaCollection.UpdateOne(ctx, filter, update)
+	update := bson.M{"$set": prod}
+	_, err = ProdutoCollection.UpdateByID(ctx, id, update)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
+	prod.ID = id
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(vend)
+	json.NewEncoder(w).Encode(prod)
 }
 
-func DeletarVenda(w http.ResponseWriter, r *http.Request) {
+// Deletar Produto pelo ID
+func DeletarProduto(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	idParam := params["id"]
+
+	id, err := primitive.ObjectIDFromHex(idParam)
+	if err != nil {
+		http.Error(w, "ID inválido", http.StatusBadRequest)
+		return
+	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	_, err := VendaCollection.DeleteOne(ctx, bson.M{"_id": idParam})
+	_, err = ProdutoCollection.DeleteOne(ctx, bson.M{"_id": id})
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
